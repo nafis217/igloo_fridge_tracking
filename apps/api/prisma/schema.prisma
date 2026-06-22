@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  FIELD_STAFF
+  VIEWER
+}
+
+enum FridgeStatus {
+  ACTIVE
+  INACTIVE
+  REPAIR
+  DECOMMISSIONED
+}
+
+model User {
+  id            String            @id @default(uuid()) @db.Uuid
+  name          String
+  email         String            @unique
+  phone         String?           @unique
+  passwordHash  String
+  role          Role              @default(VIEWER)
+  assignedArea  String?
+  createdAt     DateTime          @default(now())
+  transfers     TransferHistory[]
+  scans         ScanLog[]
+  @@index([assignedArea])
+}
+
+model ShopOwner {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String
+  phone       String
+  shopName    String
+  area        String
+  district    String
+  fullAddress String
+  latitude    Decimal            @db.Decimal(10, 7)
+  longitude   Decimal            @db.Decimal(10, 7)
+  photoUrl    String?
+  createdAt   DateTime           @default(now())
+  fridges     Fridge[]           @relation("CurrentOwner")
+  fromHistory TransferHistory[]  @relation("FromOwner")
+  toHistory   TransferHistory[]  @relation("ToOwner")
+  @@index([shopName])
+  @@index([name])
+  @@index([area, district])
+  @@index([phone])
+}
+
+model Fridge {
+  id             String            @id @default(uuid()) @db.Uuid
+  qrCodeValue    String            @unique
+  serialNumber   String            @unique
+  model          String
+  capacity       String
+  installDate    DateTime
+  status         FridgeStatus      @default(ACTIVE)
+  photoUrl       String?
+  currentOwnerId String            @db.Uuid
+  currentOwner   ShopOwner         @relation("CurrentOwner", fields: [currentOwnerId], references: [id])
+  version        Int               @default(1)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  transfers      TransferHistory[]
+  scans          ScanLog[]
+  @@index([status])
+  @@index([currentOwnerId])
+  @@index([updatedAt])
+}
+
+model TransferHistory {
+  id                  String     @id @default(uuid()) @db.Uuid
+  fridgeId            String     @db.Uuid
+  fridge              Fridge     @relation(fields: [fridgeId], references: [id])
+  fromOwnerId         String?    @db.Uuid
+  fromOwner           ShopOwner? @relation("FromOwner", fields: [fromOwnerId], references: [id])
+  toOwnerId           String     @db.Uuid
+  toOwner             ShopOwner  @relation("ToOwner", fields: [toOwnerId], references: [id])
+  addressAtTransfer   String
+  latitude            Decimal    @db.Decimal(10, 7)
+  longitude           Decimal    @db.Decimal(10, 7)
+  transferredByUserId String     @db.Uuid
+  transferredBy       User       @relation(fields: [transferredByUserId], references: [id])
+  transferredAt       DateTime   @default(now())
+  notes               String?
+  @@index([fridgeId, transferredAt(sort: Desc)])
+  @@index([transferredAt])
+  @@index([toOwnerId])
+}
+
+model ScanLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  fridgeId        String   @db.Uuid
+  fridge          Fridge   @relation(fields: [fridgeId], references: [id])
+  scannedByUserId String   @db.Uuid
+  scannedBy       User     @relation(fields: [scannedByUserId], references: [id])
+  scannedAt       DateTime @default(now())
+  latitude        Decimal? @db.Decimal(10, 7)
+  longitude       Decimal? @db.Decimal(10, 7)
+  @@index([fridgeId, scannedAt(sort: Desc)])
+  @@index([scannedAt])
+}

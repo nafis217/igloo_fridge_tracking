@@ -1,0 +1,22 @@
+import "./types.js";
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { config } from "./config.js";
+import { authenticate, errorHandler } from "./middleware.js";
+import { authRouter } from "./routes/auth.js";
+import { ownersRouter } from "./routes/owners.js";
+import { fridgesRouter } from "./routes/fridges.js";
+import { reportsRouter } from "./routes/reports.js";
+
+const app = express();
+app.use(helmet());
+app.use(cors());
+app.use(express.json({ limit: "2mb" }));
+app.get("/health", (_req, res) => res.json({ status: "ok", service: "IglooTrack API" }));
+app.use("/api/auth", authRouter);
+app.use("/api/fridges", authenticate, fridgesRouter);
+app.use("/api/shop-owners", authenticate, ownersRouter);
+app.use("/api/reports", authenticate, reportsRouter);
+app.use(errorHandler);
+app.listen(config.port, () => console.log(`IglooTrack API listening on :${config.port}`));

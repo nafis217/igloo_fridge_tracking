@@ -1,0 +1,19 @@
+{
+  "name": "igloo-track",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev:api": "npm run dev -w @iglootrack/api",
+    "dev:mobile": "npm run start -w @iglootrack/mobile",
+    "build": "npm run build -w @iglootrack/api",
+    "typecheck": "npm run typecheck -ws --if-present"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.6.2",
+    "react-native-screens": "4.16.0",
+    "typescript": "5.9.3"
+  }
+}

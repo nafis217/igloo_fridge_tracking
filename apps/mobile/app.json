@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "IglooTrack",
+    "slug": "igloo-track",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "iglootrack",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.igloobd.iglootrack",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Scan the QR label attached to an Igloo fridge.",
+        "NSLocationWhenInUseUsageDescription": "Record the verified fridge and shop location."
+      }
+    },
+    "android": {
+      "package": "com.igloobd.iglootrack",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow IglooTrack to scan fridge QR labels."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow IglooTrack to capture fridge locations."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
