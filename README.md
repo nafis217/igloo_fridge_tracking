@@ -34,7 +34,8 @@ docker-compose.yml            Local PostgreSQL
 Requirements: Node 22+, Docker, and Expo Go or an iOS/Android simulator.
 
 ```bash
-cp .env.example .env
+cp .env.example apps/api/.env
+echo 'EXPO_PUBLIC_API_URL="http://localhost:4000/api"' > apps/mobile/.env
 docker compose up -d
 npm install
 npm run prisma:generate -w @iglootrack/api
@@ -46,10 +47,10 @@ npm run dev:api
 In another terminal:
 
 ```bash
-EXPO_PUBLIC_API_URL=http://YOUR-LAN-IP:4000/api npm run dev:mobile
+npm run dev:mobile
 ```
 
-For an Android emulator use `http://10.0.2.2:4000/api`; for an iOS simulator, `http://localhost:4000/api` normally works.
+Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to your computer's LAN IP when using Expo Go on a physical phone. For an Android emulator use `http://10.0.2.2:4000/api`; for an iOS simulator, `http://localhost:4000/api` normally works.
 
 Seeded credentials:
 

@@ -7,7 +7,7 @@
     "dev:api": "npm run dev -w @iglootrack/api",
     "dev:mobile": "npm run start -w @iglootrack/mobile",
     "build": "npm run build -w @iglootrack/api",
-    "typecheck": "npm run typecheck -ws --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "overrides": {
     "react": "19.1.0",

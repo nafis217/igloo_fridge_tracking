@@ -2,6 +2,7 @@ import { Router } from "express";
 import crypto from "node:crypto";
 import QRCode from "qrcode";
 import { FridgeStatus } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "../db.js";
 import { allowRoles, validate } from "../middleware.js";
 import { fridgeSchema, scanSchema, transferSchema } from "../schemas.js";
@@ -78,7 +79,9 @@ fridgesRouter.get("/:id/history", async (req, res) => {
   }));
 });
 fridgesRouter.post("/:id/scan", allowRoles("ADMIN", "FIELD_STAFF"), validate(scanSchema), async (req, res) => {
-  const fridge = await prisma.fridge.findUnique({ where: { id: String(req.params.id) }, include: { currentOwner: true } });
+  const parsedId = z.string().uuid().safeParse(req.params.id);
+  if (!parsedId.success) return res.status(400).json({ error: "Invalid Igloo fridge code" });
+  const fridge = await prisma.fridge.findUnique({ where: { id: parsedId.data }, include: { currentOwner: true } });
   if (!fridge) return res.status(404).json({ error: "Fridge not found" });
   if (req.user!.role === "FIELD_STAFF" && req.user!.assignedArea &&
       fridge.currentOwner.area.toLowerCase() !== req.user!.assignedArea.toLowerCase()) {

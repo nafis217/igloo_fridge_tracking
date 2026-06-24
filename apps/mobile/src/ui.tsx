@@ -1,15 +1,18 @@
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, shadow } from "./theme";
 
-export function Logo({ compact = false }: { compact?: boolean }) {
+const iglooLogo = require("../assets/igloo-logo.png");
+
+export function Logo({ compact = false, centered = false }: { compact?: boolean; centered?: boolean }) {
   return (
-    <View style={styles.logoRow}>
-      <View style={styles.logoMark}><Ionicons name="snow" size={compact ? 18 : 25} color={colors.white} /></View>
-      <View>
-        <Text style={[styles.logo, compact && { fontSize: 23 }]}>IglooTrack</Text>
-        {!compact && <Text style={styles.tagline}>A world of tracked assets</Text>}
+    <View style={[styles.logoRow, centered && styles.logoCentered]}>
+      <View style={compact ? styles.logoCropCompact : styles.logoCrop}>
+        <Image source={iglooLogo} resizeMode="contain" style={compact ? styles.logoImageCompact : styles.logoImage} />
+      </View>
+      <View style={centered && styles.logoTextCentered}>
+        <Text style={[styles.logo, compact && styles.logoCompact]}>IglooTrack</Text>
       </View>
     </View>
   );
@@ -55,12 +58,17 @@ export const ui = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  logoRow: { flexDirection: "row", alignItems: "center", gap: 11 },
-  logoMark: { width: 43, height: 43, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: colors.cyan, transform: [{ rotate: "-7deg" }] },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  logoCentered: { flexDirection: "column", justifyContent: "center", alignSelf: "center", gap: 0 },
+  logoTextCentered: { alignItems: "center" },
+  logoCrop: { width: 190, height: 110, overflow: "hidden" },
+  logoCropCompact: { width: 64, height: 38, overflow: "hidden" },
+  logoImage: { position: "absolute", top: 0, width: 190, height: 136 },
+  logoImageCompact: { position: "absolute", top: 0, width: 64, height: 46 },
   logo: { color: colors.navy, fontSize: 29, fontWeight: "900", letterSpacing: -1.2 },
-  tagline: { color: colors.blue, fontSize: 10, fontWeight: "700", letterSpacing: .4 },
+  logoCompact: { fontSize: 21 },
   button: { minHeight: 54, borderRadius: 18, paddingHorizontal: 20, flexDirection: "row", gap: 9, alignItems: "center", justifyContent: "center" },
-  primaryButton: { backgroundColor: colors.coral, ...shadow },
+  primaryButton: { backgroundColor: colors.blue, ...shadow },
   secondaryButton: { backgroundColor: colors.ice, borderWidth: 1, borderColor: "#C8EAF9" },
   ghostButton: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line },
   buttonText: { color: colors.white, fontSize: 16, fontWeight: "800" },

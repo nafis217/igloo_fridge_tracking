@@ -4,6 +4,11 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000/api";
 const TOKEN_KEY = "iglootrack_token";
 const QUEUE_KEY = "iglootrack_sync_queue";
 
+type CompanyLoginResponse = {
+  username: string;
+  message: string;
+};
+
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await AsyncStorage.getItem(TOKEN_KEY);
   const response = await fetch(`${API_URL}${path}`, {
@@ -15,12 +20,21 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     },
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || "Request failed");
+  if (!response.ok) throw new Error(body.error || body.message || body.title || "Request failed");
   return body;
 }
 
-export async function saveSession(token: string, user: unknown) {
-  await AsyncStorage.multiSet([[TOKEN_KEY, token], ["iglootrack_user", JSON.stringify(user)]]);
+export async function loginWithCompanyAuth(username: string, password: string) {
+  return api<CompanyLoginResponse>("/Auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function saveSession(token: string | null | undefined, user: unknown) {
+  await AsyncStorage.setItem("iglootrack_user", JSON.stringify(user));
+  if (token) await AsyncStorage.setItem(TOKEN_KEY, token);
+  else await AsyncStorage.removeItem(TOKEN_KEY);
 }
 
 export async function clearSession() {
@@ -29,7 +43,7 @@ export async function clearSession() {
 
 export async function getSession() {
   const [[, token], [, user]] = await AsyncStorage.multiGet([TOKEN_KEY, "iglootrack_user"]);
-  return token && user ? { token, user: JSON.parse(user) } : null;
+  return user ? { token, user: JSON.parse(user) } : null;
 }
 
 type QueuedAction = { id: string; path: string; options: RequestInit; queuedAt: string };

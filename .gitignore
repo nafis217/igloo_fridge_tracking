@@ -1,4 +1,6 @@
 node_modules
+.npm-cache
+.tmp/
 .env
 .expo
 dist
