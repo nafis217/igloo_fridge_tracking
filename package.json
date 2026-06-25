@@ -2,11 +2,10 @@
   "name": "igloo-track",
   "private": true,
   "version": "1.0.0",
-  "workspaces": ["apps/*"],
+  "workspaces": ["apps/mobile"],
   "scripts": {
-    "dev:api": "npm run dev -w @iglootrack/api",
     "dev:mobile": "npm run start -w @iglootrack/mobile",
-    "build": "npm run build -w @iglootrack/api",
+    "web": "npm run web -w @iglootrack/mobile",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "overrides": {

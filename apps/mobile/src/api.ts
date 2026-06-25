@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5047/api";
 const TOKEN_KEY = "iglootrack_token";
 const QUEUE_KEY = "iglootrack_sync_queue";
 
