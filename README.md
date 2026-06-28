@@ -17,10 +17,11 @@ The old Node/Express API has been removed from this repository.
 
 ## API Configuration
 
-Set the ASP.NET API base URL in `apps/mobile/.env`:
+Set the ASP.NET API connection values in `apps/mobile/.env`:
 
 ```env
 EXPO_PUBLIC_API_URL="http://localhost:5047/api"
+EXPO_PUBLIC_COMPANY_ID="1"
 ```
 
 The login call goes to:

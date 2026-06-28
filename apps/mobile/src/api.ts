@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5047/api";
+const COMPANY_ID = Number(process.env.EXPO_PUBLIC_COMPANY_ID || "1");
 const TOKEN_KEY = "iglootrack_token";
 const QUEUE_KEY = "iglootrack_sync_queue";
 
 type CompanyLoginResponse = {
-  username: string;
+  isValid: boolean;
   message: string;
 };
 
@@ -25,10 +26,13 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 }
 
 export async function loginWithCompanyAuth(username: string, password: string) {
-  return api<CompanyLoginResponse>("/Auth/login", {
+  const result = await api<CompanyLoginResponse>("/Auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, companyId: COMPANY_ID }),
   });
+
+  if (!result.isValid) throw new Error(result.message || "Invalid username or password.");
+  return result;
 }
 
 export async function saveSession(token: string | null | undefined, user: unknown) {

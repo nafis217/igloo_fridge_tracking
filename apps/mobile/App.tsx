@@ -59,11 +59,11 @@ function Login({ onLogin }: { onLogin: (user: User) => void }) {
     }
     setLoading(true);
     try {
-      const result = await loginWithCompanyAuth(trimmedUsername, password);
+      await loginWithCompanyAuth(trimmedUsername, password);
       const user: User = {
-        id: result.username,
-        name: result.username,
-        email: result.username,
+        id: trimmedUsername,
+        name: trimmedUsername,
+        email: trimmedUsername,
         role: "VIEWER",
       };
       await saveSession(null, user); onLogin(user);
