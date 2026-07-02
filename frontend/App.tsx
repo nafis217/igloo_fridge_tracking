@@ -69,8 +69,8 @@ function Login({ onLogin }: { onLogin: (user: User) => void }) {
       await saveSession(null, user); onLogin(user);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Try again";
-      const friendlyMessage = /failed to fetch|network request failed/i.test(message)
-        ? "Could not reach the API from the browser. Check that the API is running and CORS allows http://localhost:8081."
+      const friendlyMessage = /failed to fetch|network request failed|could not reach the api/i.test(message)
+        ? "Could not reach the API from the browser. Check that the backend is running on http://localhost:5047 and that the frontend is reloaded."
         : message;
       setSignInError(friendlyMessage);
       if (Platform.OS !== "web") Alert.alert("Could not sign in", friendlyMessage);
@@ -118,10 +118,21 @@ function Dashboard({ user }: { user: User }) {
   const nav = useNavigation<any>();
   const [report, setReport] = useState<any>();
   const [refreshing, setRefreshing] = useState(false);
-  const load = async () => { try { setReport(await api("/reports/summary")); } catch {} };
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const load = async () => {
+    try {
+      setLoadError(null);
+      const payload = await api("/reports/summary");
+      setReport(payload);
+    } catch (error) {
+      setReport(null);
+      setLoadError(error instanceof Error ? error.message : "Unable to load dashboard data.");
+    }
+  };
   useEffect(() => { load(); }, []);
   const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
-  const active = report?.byStatus?.find((x: any) => x.status === "ACTIVE")?._count || 0;
+  const active = report?.byStatus?.ACTIVE ?? 0;
+  const districtEntries = Object.entries(report?.byDistrict ?? {}).map(([district, count]: [string, any]) => ({ district, count }));
   return <Page><ScrollView contentContainerStyle={ui.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
     <Text style={styles.overviewTitle}>Igloo Fridge Overview</Text>
     <Pressable onPress={() => nav.navigate("Scanner")} style={styles.scanHero}>
@@ -142,11 +153,13 @@ function Dashboard({ user }: { user: User }) {
       <Quick icon="time" label="Recent moves" color={colors.cyan} onPress={() => nav.navigate("Search")} />
     </View>
     <Text style={ui.section}>By district</Text>
-    <Card>{(report?.byDistrict || []).slice(0, 5).map((x: any, i: number) =>
-      <View key={x.district} style={[styles.district, i > 0 && { borderTopWidth: 1, borderTopColor: colors.line }]}>
-        <Text style={styles.districtName}>{x.district}</Text><Text style={styles.districtCount}>{x._count.fridges} fridges</Text>
-      </View>)}
-      {!report && <Text style={ui.subtitle}>Connect to the API to load live field statistics.</Text>}
+    <Card>
+      {loadError ? <Text style={ui.subtitle}>{loadError}</Text> : null}
+      {!loadError && districtEntries.length === 0 ? <Text style={ui.subtitle}>No district data yet.</Text> : null}
+      {districtEntries.slice(0, 5).map((x: any, i: number) =>
+        <View key={x.district} style={[styles.district, i > 0 && { borderTopWidth: 1, borderTopColor: colors.line }]}>
+          <Text style={styles.districtName}>{x.district}</Text><Text style={styles.districtCount}>{x.count} fridges</Text>
+        </View>)}
     </Card>
   </ScrollView></Page>;
 }

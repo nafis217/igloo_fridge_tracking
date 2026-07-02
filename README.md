@@ -1,60 +1,71 @@
 # IglooTrack
 
-IglooTrack is now an Expo mobile/web app that talks to an external ASP.NET API.
+IglooTrack keeps the React/Expo frontend and ASP.NET Core Web API as separate runnable projects in one repository.
 
-## Project Structure
+## Project structure
 
 ```text
-apps/
-  mobile/
-    App.tsx        Navigation and field screens
-    src/api.ts     API client and offline queue
-    src/theme.ts   Visual tokens
-    src/ui.tsx     Shared components
+IglooTrack/
+|-- frontend/          React/Expo application
+|-- backend/           ASP.NET Core Web API
+|-- IglooTrack.sln     Visual Studio solution
+`-- README.md
 ```
 
-The old Node/Express API has been removed from this repository.
+Generated folders such as `node_modules`, `bin`, and `obj` are not part of the source structure.
 
-## API Configuration
+## Run the frontend
 
-Set the ASP.NET API connection values in `apps/mobile/.env`:
+The frontend uses Expo with React Native Web. From the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+`npm run start` starts Expo's interactive development server. `npm run web` starts the web target directly. The web application normally opens at `http://localhost:8081`.
+
+Configure the frontend in `frontend/.env`:
 
 ```env
 EXPO_PUBLIC_API_URL="http://localhost:5047/api"
 EXPO_PUBLIC_COMPANY_ID="1"
 ```
 
-The login call goes to:
+## Run the backend
+
+From the repository root:
+
+```powershell
+cd backend
+dotnet restore
+dotnet run
+```
+
+The HTTP launch profile serves the API at `http://localhost:5047`; Swagger is at `http://localhost:5047/swagger`.
+
+## Frontend-to-backend connection
+
+The frontend API helper reads `EXPO_PUBLIC_API_URL` and sends requests to the ASP.NET controllers. The default login endpoint is:
 
 ```text
 POST http://localhost:5047/api/Auth/login
 ```
 
-The ASP.NET API should also provide these routes for the rest of the app:
+The backend CORS policy allows local React development origins on ports `3000`, `5173`, and Expo web port `8081` (including their `127.0.0.1` equivalents).
 
-```text
-GET  /api/reports/summary
-GET  /api/fridges
-POST /api/fridges
-GET  /api/fridges/{id}
-POST /api/fridges/{id}/scan
-POST /api/fridges/{id}/transfer
-GET  /api/shop-owners
-POST /api/shop-owners
-GET  /api/shop-owners/{id}
+## SQL Server 2012 configuration
+
+Set `ConnectionStrings:DefaultConnection` in `backend/appsettings.json`, `backend/appsettings.Development.json`, or preferably through an environment variable:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection="Server=YOUR_SERVER;Database=IglooTrack;User Id=YOUR_USER;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+dotnet run --project backend
 ```
 
-## Run Web
+The EF Core SQL provider is configured with compatibility level `110`, which corresponds to SQL Server 2012. Replace the checked-in localhost connection string with the correct server/database details for your environment. Do not commit production credentials.
 
-```bash
-npm install
-npm run web
-```
+## Visual Studio
 
-Open:
-
-```text
-http://localhost:8081
-```
-
-Your ASP.NET API must allow CORS from `http://localhost:8081`.
+Open `IglooTrack.sln`. The solution contains the backend project. The frontend remains independently managed with npm and can be opened in the same editor or terminal.

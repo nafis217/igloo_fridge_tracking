@@ -1,7 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5047/api";
-const COMPANY_ID = Number(process.env.EXPO_PUBLIC_COMPANY_ID || "1");
+const DEFAULT_API_URLS = [
+  "http://localhost:5047/api",
+  "http://127.0.0.1:5047/api",
+  process.env.EXPO_PUBLIC_API_URL,
+  typeof window !== "undefined" ? `http://${window.location.hostname}:5047/api` : undefined,
+  "http://localhost:5050/api",
+  "http://127.0.0.1:5050/api",
+].filter((value): value is string => Boolean(value && value.trim()));
+
 const TOKEN_KEY = "iglootrack_token";
 const QUEUE_KEY = "iglootrack_sync_queue";
 
@@ -12,23 +19,47 @@ type CompanyLoginResponse = {
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await AsyncStorage.getItem(TOKEN_KEY);
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || body.message || body.title || "Request failed");
-  return body;
+  let lastError: unknown;
+
+  for (const baseUrl of DEFAULT_API_URLS) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...options.headers,
+        },
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = body?.error || body?.message || body?.title || body?.detail || "Request failed";
+        throw new Error(`${message} (${response.status})`);
+      }
+      return body as T;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isNetworkError = /failed to fetch|network request failed|fetch failed|err_connection_refused|econnrefused|timed out/i.test(message);
+      if (isNetworkError) {
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(
+    lastError instanceof Error
+      ? lastError.message
+      : "Could not reach the API. Check that the backend is running and that the API URL is correct."
+  );
 }
 
 export async function loginWithCompanyAuth(username: string, password: string) {
   const result = await api<CompanyLoginResponse>("/Auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password, companyId: COMPANY_ID }),
+    body: JSON.stringify({ username, password }),
   });
 
   if (!result.isValid) throw new Error(result.message || "Invalid username or password.");

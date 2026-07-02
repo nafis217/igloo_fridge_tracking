@@ -7,3 +7,7 @@ dist
 coverage
 *.log
 apps/api/prisma/dev.db*
+backend/bin/
+backend/obj/
+backend/*.user
+.vs/

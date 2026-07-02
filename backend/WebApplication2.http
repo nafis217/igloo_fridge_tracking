@@ -1,0 +1,41 @@
+@WebApplication2_HostAddress = http://localhost:5047
+
+GET {{WebApplication2_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{WebApplication2_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1234"
+}
+
+###
+
+GET {{WebApplication2_HostAddress}}/api/reports/summary
+Accept: application/json
+
+###
+
+GET {{WebApplication2_HostAddress}}/api/fridges?pageSize=100
+Accept: application/json
+
+###
+
+POST {{WebApplication2_HostAddress}}/api/fridges/fridge-001/scan
+Content-Type: application/json
+
+{
+  "latitude": 23.8103,
+  "longitude": 90.4125
+}
+
+###
+
+GET {{WebApplication2_HostAddress}}/api/shop-owners?search=Gulshan
+Accept: application/json
+
+###
